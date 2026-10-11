@@ -5,3 +5,4 @@ __pycache__/
 fiche_*
 mlflow.db
 mlruns/
+images_test/
