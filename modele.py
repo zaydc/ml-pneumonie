@@ -19,13 +19,14 @@ nb_epoques = 20
 batch_size = 64
 
 mlflow.set_experiment("pneumonie-cnn")
-mlflow.start_run()
+mlflow.start_run(run_name=f"adam_lr{lr}_ep{nb_epoques}")
 mlflow.log_params({
     "lr": lr,
     "nb_epoques": nb_epoques,
     "batch_size": batch_size,
     "optimiseur": "Adam",
     "pos_weight": True,
+    "seuil":0.5,
 })
 
 
@@ -154,5 +155,6 @@ print(f"AUC sur val : {auc_val:.4f}")
 
 # Sauvegarde des poids du modèle
 torch.save(modele.state_dict(), "modele_cnn.pt")
+mlflow.log_artifact("modele_cnn.pt")
 print(modele.state_dict().keys())
 mlflow.end_run()
