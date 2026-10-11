@@ -3,3 +3,5 @@ __pycache__/
 *.pt
 .vscode/
 fiche_*
+mlflow.db
+mlruns/

@@ -8,17 +8,34 @@ from sklearn.metrics import roc_auc_score
 from architecture import creer_modele
 import torch.nn as nn
 import torch
+import mlflow
 
 # Graine fixée pour avoir les mêmes résultats à chaque lancement
 torch.manual_seed(42)
 
+# Hyperparamètres
+lr = 0.001
+nb_epoques = 20
+batch_size = 64
+
+mlflow.set_experiment("pneumonie-cnn")
+mlflow.start_run()
+mlflow.log_params({
+    "lr": lr,
+    "nb_epoques": nb_epoques,
+    "batch_size": batch_size,
+    "optimiseur": "Adam",
+    "pos_weight": True,
+})
+
+
 # Chargement des trois splits (on ne mélange que le train)
 train_t = PneumoniaMNIST(split="train", download=True, transform=transforms.ToTensor())
-train_loader = DataLoader(train_t, batch_size=64, shuffle=True)
+train_loader = DataLoader(train_t, batch_size=batch_size, shuffle=True)
 val_t = PneumoniaMNIST(split="val", download=True, transform=transforms.ToTensor())
-val_loader = DataLoader(val_t, batch_size=64, shuffle=False)
+val_loader = DataLoader(val_t, batch_size=batch_size, shuffle=False)
 test_t = PneumoniaMNIST(split="test", download=True, transform=transforms.ToTensor())
-test_loader = DataLoader(test_t,batch_size=64, shuffle=False)
+test_loader = DataLoader(test_t,batch_size=batch_size, shuffle=False)
 
 modele = creer_modele()
 
@@ -34,10 +51,10 @@ critere_poids = nn.BCEWithLogitsLoss(pos_weight=poids)
 
 # Perte sans pondération, gardée pour comparer
 critere = nn.BCEWithLogitsLoss()
-optimiseur = torch.optim.Adam(modele.parameters(), lr=0.001)
+optimiseur = torch.optim.Adam(modele.parameters(), lr)
 
 
-for epoque in range(20):
+for epoque in range(nb_epoques):
     # Entraînement sur le train
     modele.train()
     perte_totale = 0
@@ -62,8 +79,13 @@ for epoque in range(20):
             perte = critere_poids(sorties, labels.float())
             perte_val_totale += perte.item()
 
-    print(f"Époque {epoque} : perte moyenne sur le train : {perte_totale / len(train_loader):.4f} et sur le val : {perte_val_totale / len(val_loader):.4f}")
+    perte_train = perte_totale / len(train_loader)
+    perte_val = perte_val_totale / len(val_loader)
 
+    mlflow.log_metric("perte_train", perte_train, step=epoque)
+    mlflow.log_metric("perte_val", perte_val, step=epoque)
+
+    print(f"Époque {epoque} : perte moyenne sur le train : {perte_train:.4f} et sur le val : {perte_val:.4f}")
 
 # Affiche la sensibilité, la spécificité et l'accuracy pour un seuil donné
 # (classe positive = pneumonie)
@@ -117,6 +139,8 @@ def calculer_auc(loader):
     return auc
 
 auc_val = calculer_auc(val_loader)
+mlflow.log_metric("auc_val", auc_val)
+
 print(f"AUC sur val : {auc_val:.4f}")
 
 # Évaluation finale sur le test, faite une seule fois.
@@ -131,3 +155,4 @@ print(f"AUC sur val : {auc_val:.4f}")
 # Sauvegarde des poids du modèle
 torch.save(modele.state_dict(), "modele_cnn.pt")
 print(modele.state_dict().keys())
+mlflow.end_run()
