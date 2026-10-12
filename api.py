@@ -1,6 +1,7 @@
 # API de prédiction : reçoit une radio et renvoie la probabilité de pneumonie
 
 import io
+import os
 
 import torch
 from fastapi import FastAPI, UploadFile
@@ -9,12 +10,14 @@ from torchvision import transforms
 
 from architecture import creer_modele
 
+# Chemin du modèle, modifiable avec la variable d'environnement CHEMIN_MODELE
+chemin_modele = os.environ.get("CHEMIN_MODELE", "modele_cnn.pt")
 # Seuil choisi sur le split val
 seuil = 0.5
 
 # Le modèle est chargé une seule fois, au démarrage de l'API
 modele = creer_modele()
-modele.load_state_dict(torch.load("modele_cnn.pt"))
+modele.load_state_dict(torch.load(chemin_modele))
 modele.eval()
 
 # Même préparation des images qu'à l'entraînement : niveaux de gris, 28x28, valeurs entre 0 et 1
