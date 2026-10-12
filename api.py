@@ -42,7 +42,12 @@ pretraitement = transforms.Compose([
     transforms.ToTensor(),
 ])
 
-app = FastAPI()
+app = FastAPI(
+    title="API de détection de pneumonie",
+    description="Prédit la probabilité de pneumonie sur une radiographie thoracique (projet d'apprentissage, pas un outil médical).",
+    version="1.0",
+)
+
 
 
 # Permet de vérifier que l'API tourne
@@ -51,7 +56,7 @@ def sante():
     return {"statut": "ok"}
 
 
-@app.post("/predire")
+@app.post("/predire", summary="Prédire le diagnostic d'une radiographie")
 async def predire(fichier: UploadFile):
     contenu = await fichier.read()
     image = Image.open(io.BytesIO(contenu))
