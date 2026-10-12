@@ -5,7 +5,7 @@ from architecture import creer_modele
 
 def test_un_score_par_image():
     modele = creer_modele()
-    images = torch.rand(8, 1, 28, 28)
+    images = torch.rand(8, 2, 28, 28)
 
     sorties = modele(images)
 
