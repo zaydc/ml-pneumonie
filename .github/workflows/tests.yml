@@ -25,3 +25,24 @@ jobs:
 
       - name: Lancer les tests
         run: python -m pytest
+
+  docker:
+    needs: tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v7
+
+      - name: Télécharger le modèle depuis la release
+        run: gh release download modele-v1 --pattern modele_cnn.pt
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Construire l'image Docker
+        run: docker build -t pneumonie-api .
+
+      - name: Vérifier que l'API démarre
+        run: |
+          docker run -d -p 8000:8000 pneumonie-api
+          curl --fail --retry 10 --retry-connrefused --retry-delay 2 http://127.0.0.1:8000/sante
