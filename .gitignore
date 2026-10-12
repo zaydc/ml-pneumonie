@@ -6,3 +6,4 @@ fiche_*
 mlflow.db
 mlruns/
 images_test/
+predictions.jsonl

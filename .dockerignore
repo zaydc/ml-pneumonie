@@ -6,3 +6,4 @@ mlflow.db
 mlruns/
 images_test/
 .git/
+predictions.jsonl

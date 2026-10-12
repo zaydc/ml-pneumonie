@@ -13,7 +13,10 @@ chemin_faux_modele = os.path.join(tempfile.gettempdir(), "modele_test.pt")
 torch.save(creer_modele().state_dict(), chemin_faux_modele)
 os.environ["CHEMIN_MODELE"] = chemin_faux_modele
 
-# L'API est importée après avoir défini CHEMIN_MODELE, pour qu'elle charge le faux modèle
+# Journal des tests dans le dossier temporaire, pour ne pas remplir le vrai journal
+os.environ["CHEMIN_JOURNAL"] = os.path.join(tempfile.gettempdir(), "predictions_test.jsonl")
+
+# L'API est importée après avoir défini les variables d'environnement, pour qu'elle les prenne en compte
 from api import app
 
 client = TestClient(app)
